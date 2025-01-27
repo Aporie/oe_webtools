@@ -1,3 +1,5 @@
+// phpcs:ignoreFile
+
 # OpenEuropa Webtools eTrans
 
 This component provides integration with the Webtools eTranslation service.
