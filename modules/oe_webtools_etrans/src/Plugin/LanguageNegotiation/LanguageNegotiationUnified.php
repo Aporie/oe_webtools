@@ -65,6 +65,7 @@ class LanguageNegotiationUnified extends LanguageNegotiationUrl implements Outbo
    */
   public function getLanguageSwitchLinks(Request $request, $type, Url $url) {
     $links = parent::getLanguageSwitchLinks($request, $type, $url);
+    // Add a expected class.
     foreach ($links as $link) {
       $link['attributes']['class'][] = 'unified-link';
     }

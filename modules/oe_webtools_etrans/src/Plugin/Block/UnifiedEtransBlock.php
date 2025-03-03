@@ -101,8 +101,17 @@ class UnifiedEtransBlock extends BlockBase implements ContainerFactoryPluginInte
     $placeholder_id = Html::getUniqueId('etrans-widget');
     // On node route, we take the node original language,
     // which is not necessarily the default language of the website.
+    $current_language = $this->languageManager->getCurrentLanguage();
     $translation_from = $this->getRouteEntityLangcode(TRUE) ?: $this->languageManager->getDefaultLanguage()->getId();
-    $translation_to_language = $this->languageManager->getCurrentLanguage();
+    $translation_to_language = $this->languageManager->getCurrentLanguage()->getId();
+
+    // In Drupal, language codes (langcode) are often in ISO 639-2 format by default.
+    // However, users may add languages that do not adhere to this standard.
+    // Additionally, some languages might use custom formats like 'pt-pt' or 'ta-lk'.
+    // Due to this variability, the format of langcode is unpredictable.
+    // Therefore, our approach is to use only the first two characters as a best guess.
+    $translation_from = substr($translation_from, 0, 2);
+    $translation_to_language = substr($translation_to_language, 0, 2);
 
     $json = $this->preparesWtEtransJson($translation_from, $placeholder_id);
 
@@ -120,7 +129,7 @@ class UnifiedEtransBlock extends BlockBase implements ContainerFactoryPluginInte
         ],
         'drupalSettings' => [
           'path' => [
-            'languageTo' => $translation_to_language->getId(),
+            'languageTo' => $translation_to_language,
           ],
         ],
       ],
@@ -134,28 +143,28 @@ class UnifiedEtransBlock extends BlockBase implements ContainerFactoryPluginInte
     ];
 
     $message = $this->t("@language is available via eTranslation, the European Commission's machine translation service.", [
-      '@language' => $translation_to_language->getName(),
+      '@language' => $current_language->getName(),
     ], [
-      'langcode' => $translation_to_language->getId(),
+      'langcode' => $current_language->getId(),
     ]);
     $translate_link = [
       '#type' => 'link',
       '#url' => Url::fromRoute('<none>', [], ['attributes' => ['class' => ['oe-webtools-unified-etrans--translate']]]),
       '#title' => $this->t('Translate to @language', [
-        '@language' => $translation_to_language->getName(),
+        '@language' => $current_language->getName(),
       ], [
-        'langcode' => $translation_to_language->getId(),
+        'langcode' => $current_language->getId(),
       ]),
     ];
     $disclaimer_link = [
       '#type' => 'link',
-      '#url' => Url::fromUri('https://commission.europa.eu/languages-our-websites/use-machine-translation-europa_' . $translation_to_language->getId(), [
+      '#url' => Url::fromUri('https://commission.europa.eu/languages-our-websites/use-machine-translation-europa_' . $current_language->getId(), [
         'attributes' => [
           'class' => ['webtools-etrans--disclaimer'],
           'target' => '_blank',
         ],
       ]),
-      '#title' => $this->t('Important information about machine translation', [], ['langcode' => $translation_to_language->getId()]),
+      '#title' => $this->t('Important information about machine translation', [], ['langcode' => $current_language->getId()]),
     ];
     $build['translation_request'] = [
       '#theme' => 'block__unified_etrans_request',
